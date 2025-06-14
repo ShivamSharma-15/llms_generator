@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <title>Website Analyzer</title>
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="/apps/llms/socket.io/socket.io.js"></script>
+
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -36,7 +37,7 @@
     </div>
 
     <script>
-      const socket = io();
+      const socket = io({ path: "/apps/llms/socket.io" });
       function downloadFile() {
         const text = document.getElementById("siteContent").value;
         const blob = new Blob([text], { type: "text/plain" });
