@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Website Analyzer</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>llms.txt generation For LLMO</h1>
+    <input
+      type="text"
+      id="urlInput"
+      placeholder="Enter website URL"
+      size="50"
+    />
+    <button onclick="submitURL()">Analyze</button>
+    <div id="loaderText" class="hidden">This may take upto 2 minutes</div>
+    <div id="loader" class="hidden">Loading...</div>
+    <div id="result" style="display: none">
+      <h2 id="siteTitle"></h2>
+      <textarea id="siteContent" rows="15" cols="100"></textarea>
+
+      <!-- Download Button -->
+      <button id="downloadBtn" onclick="downloadFile()">
+        Download llms.txt
+      </button>
+
+      <!-- Contact CTA -->
+      <!-- <p class="cta">
+        Need advanced control, optimization, or full-site llms.txt
+        generation?<br />
+        <strong>Contact us</strong> for custom solutions tailored to your
+        website.
+      </p> -->
+    </div>
+
+    <script>
+      const socket = io();
+      function downloadFile() {
+        const text = document.getElementById("siteContent").value;
+        const blob = new Blob([text], { type: "text/plain" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "llms.txt";
+        a.click();
+      }
+
+      function submitURL() {
+        const loadingText1 = document.getElementById("loaderText");
+        const loadingText2 = document.getElementById("loader");
+        loadingText1.classList.remove("hidden");
+        loadingText2.classList.remove("hidden");
+        const url = document.getElementById("urlInput").value;
+        if (!url) {
+          alert("Please enter a URL");
+          return;
+        }
+
+        document.getElementById("loader").style.display = "block";
+        document.getElementById("result").style.display = "none";
+
+        socket.emit("analyzeWebsite", { url });
+      }
+
+      socket.on("analysisResult", (data) => {
+        document.getElementById("loader").style.display = "none";
+
+        if (data.error) {
+          alert("Error: " + data.error);
+          return;
+        }
+
+        let formattedText = "";
+        if (Array.isArray(data)) {
+          data.forEach((page) => {
+            if (page.error) {
+              formattedText += `# ${page.url}\nERROR: ${page.error}\n\n`;
+            } else {
+              formattedText += `# ${page.title}\n${page.content}\n\n`;
+            }
+          });
+        } else {
+          formattedText = "Unexpected format received.";
+        }
+        document.getElementById("siteTitle").textContent = "Extracted Content";
+        document.getElementById("siteContent").value = formattedText.trim();
+        document.getElementById("result").style.display = "block";
+        document.getElementById("loaderText").classList.add = "remove";
+      });
+    </script>
+  </body>
+</html>
